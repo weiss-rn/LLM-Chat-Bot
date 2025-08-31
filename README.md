@@ -50,7 +50,8 @@ LLM-Chat-Bot/
 ├─ Streamlit-run-NT.bat     # Batch script (Windows) → Streamlit
 ├─ Windows-run-webui.bat    # Batch script → Flask UI
 ├─ linux-run-webui.sh       # Bash script → Flask UI
-├─ Windows-run-cli-only.bat # (currently empty – can be used for CLI)
+├─ Windows-run-cli-only.bat # Bash script → CLI Only
+├─ linux-run-cli-only.sh       # Bash script → CLI Only
 │
 └─ README.md
 ```
