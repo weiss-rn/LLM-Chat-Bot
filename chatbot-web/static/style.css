@@ -1,0 +1,130 @@
+:root {
+  --bg: #f5f7fa;
+  --fg: #f8f8f8;
+  --bg-card: white;
+  --border: #ddd;
+  --btn-bg: #0066cc;
+  --btn-hover: #0055aa;
+  --user-bg: #83e4eb;
+  --bot-bg: #028ac9;
+  --text: #333;
+}
+
+body.dark {
+  --bg: #1a1a1a;
+  --fg: #eee;
+  --bg-card: #2d2d2d;
+  --border: #444;
+  --btn-bg: #0088ff;
+  --btn-hover: #0077dd;
+  --user-bg: #0077cc;
+  --bot-bg: #3a3a3a;
+  --text: #ddd;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.container {
+  max-width: 640px;
+  margin: 20px auto;
+  padding: 16px;
+  background: var(--bg-card);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+header h1 {
+  margin: 0;
+  color: var(--fg);
+  font-size: 1.5rem;
+}
+
+.controls button {
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+  margin-left: 12px;
+  color: var(--fg);
+}
+
+#chat-box {
+  height: 70vh;
+  overflow-y: auto;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  margin-bottom: 16px;
+}
+
+.message {
+  margin: 8px 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  max-width: 80%;
+  line-height: 1.5;
+}
+
+.user {
+  background: var(--user-bg);
+  color: white;
+  margin-left: auto;
+  border-bottom-right-radius: 4px;
+}
+
+.bot {
+  background: var(--bot-bg);
+  color: var(--fg);
+  margin-right: auto;
+  border-bottom-left-radius: 4px;
+}
+
+.input-area {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+input[type="text"] {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 16px;
+  background: var(--bg-card);
+  color: var(--fg);
+}
+
+input[type="text"]:focus {
+  outline: none;
+  border-color: var(--btn-bg);
+}
+
+button {
+  padding: 12px 20px;
+  background: var(--btn-bg);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button:hover {
+  background: var(--btn-hover);
+}
