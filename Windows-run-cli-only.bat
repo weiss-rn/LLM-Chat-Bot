@@ -1,7 +1,7 @@
 @echo off
 
 REM
-cd chatbot-web
+cd cli-only
 
 REM
 python --version >nul 2>&1
@@ -22,3 +22,4 @@ REM
 cd ..
 
 pause
+
