@@ -45,7 +45,7 @@ if not API_KEY:
 
 # Configure Google Generative AI
 genai.configure(api_key=API_KEY)
-model_name = "models/gemini-1.5-flash-latest"  # Updated model name
+model_name = "models/gemini-1.5-flash-latest"
 model = genai.GenerativeModel(model_name)
 
 # Chat history (in-memory, per session)
@@ -70,6 +70,10 @@ def chat():
         temp_file_path = None
         uploaded_gemini_file = None
 
+        # Prevent empty submission (backend check)
+        if not user_message and (not uploaded_file or uploaded_file.filename == ''):
+            return jsonify({"reply": "❌ Please enter a message or attach a file."}), 400
+
         if uploaded_file and uploaded_file.filename != '':
             # Save uploaded file temporarily
             file_extension = Path(uploaded_file.filename).suffix
@@ -81,7 +85,14 @@ def chat():
             try:
                 uploaded_gemini_file = genai.upload_file(temp_file_path)
             except Exception as e:
+                # Clean up temp file
+                if temp_file_path and os.path.exists(temp_file_path):
+                    os.remove(temp_file_path)
                 return jsonify({"reply": f"❌ Failed to process file: {str(e)}"}), 400
+            
+            # Clean up temp file after upload
+            if temp_file_path and os.path.exists(temp_file_path):
+                os.remove(temp_file_path)
 
         # Build generation config
         generation_config = genai.types.GenerationConfig(
@@ -92,7 +103,9 @@ def chat():
         )
 
         # Prepare content
-        contents = [user_message] if user_message else []
+        contents = []
+        if user_message:
+            contents.append(user_message)
         if uploaded_gemini_file:
             contents.append(uploaded_gemini_file)
 

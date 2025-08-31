@@ -5,16 +5,20 @@ const fileInput = document.getElementById("file-input");
 const fileName = document.getElementById("file-name");
 const themeToggle = document.getElementById("theme-toggle");
 const bgToggle = document.getElementById("bg-toggle");
-const configToggle = document.getElementById("config-panel");
+const configToggleBtn = document.getElementById("config-toggle");
+const configPanel = document.getElementById("config-panel");
 const clearBtn = document.getElementById("clear-btn");
 const bgModal = document.getElementById("bg-modal");
 
 // Sync UI with saved settings
 function loadSettings() {
-  document.getElementById("temperature").value = localStorage.getItem("temp") || 0.7;
-  document.getElementById("top_p").value = localStorage.getItem("top_p") || 0.8;
-  document.getElementById("top_k").value = localStorage.getItem("top_k") || 40;
-  document.getElementById("max_tokens").value = localStorage.getItem("max_tokens") || 1024;
+  ['temperature', 'top_p', 'top_k', 'max_tokens'].forEach(id => {
+    const element = document.getElementById(id);
+    const savedValue = localStorage.getItem(id);
+    if (savedValue && element) {
+      element.value = savedValue;
+    }
+  });
   updateValueSpans();
 }
 
@@ -23,7 +27,9 @@ function updateValueSpans() {
   ['temperature', 'top_p', 'top_k', 'max_tokens'].forEach(id => {
     const el = document.getElementById(id);
     const valEl = document.getElementById(id + '-value');
-    if (el && valEl) valEl.textContent = el.value;
+    if (el && valEl) {
+      valEl.textContent = el.value;
+    }
   });
 }
 
@@ -31,14 +37,31 @@ function updateValueSpans() {
 function saveSettings() {
   ['temperature', 'top_p', 'top_k', 'max_tokens'].forEach(id => {
     const el = document.getElementById(id);
-    if (el) localStorage.setItem(id, el.value);
+    if (el) {
+      localStorage.setItem(id, el.value);
+    }
   });
 }
+
+// Add event listeners for sliders to update values and save
+['temperature', 'top_p', 'top_k', 'max_tokens'].forEach(id => {
+  const element = document.getElementById(id);
+  if (element) {
+    element.addEventListener('input', () => {
+      updateValueSpans();
+      saveSettings();
+    });
+  }
+});
 
 // Theme toggle
 themeToggle.addEventListener("click", () => {
   const body = document.getElementById("body");
   const isDark = body.classList.toggle("muted-dark");
+  body.classList.remove("muted-light");
+  if (!isDark) {
+    body.classList.add("muted-light");
+  }
   themeToggle.textContent = isDark ? "☀️" : "🌙";
   localStorage.setItem("darkMode", isDark);
 });
@@ -52,6 +75,7 @@ function closeModal() {
   bgModal.style.display = "none";
 }
 
+// Background upload
 document.getElementById("bg-upload").addEventListener("change", (e) => {
   const file = e.target.files[0];
   if (file) {
@@ -65,14 +89,21 @@ document.getElementById("bg-upload").addEventListener("change", (e) => {
   closeModal();
 });
 
-// Radio button logic
+// Config panel toggle
+configToggleBtn.addEventListener("click", () => {
+  const isVisible = configPanel.style.display === "block";
+  configPanel.style.display = isVisible ? "none" : "block";
+});
+
+// Radio button logic for background
 document.querySelectorAll('input[name="bg"]').forEach(radio => {
   radio.addEventListener("change", () => {
     if (radio.value === "default") {
-      document.body.style.backgroundImage = "url('/static/default-bg.jpg')";
-      document.body.classList.remove("no-bg");
-    } else {
+      document.body.style.backgroundImage = "none";
       document.body.classList.add("no-bg");
+      document.getElementById("bg-upload").style.display = "none";
+    } else {
+      document.getElementById("bg-upload").style.display = "inline-block";
     }
   });
 });
@@ -85,71 +116,104 @@ fileInput.addEventListener("change", () => {
 // Send message
 chatForm.addEventListener("submit", async (e) => {
   e.preventDefault();
+  
   const message = userInput.value.trim();
   const file = fileInput.files[0];
 
-  if (!message && !file) return;
+  // Prevent empty submission
+  if (!message && !file) {
+    return;
+  }
 
+  // Show user message
   appendMessage("user", message, file?.name);
+  
+  // Clear inputs
   userInput.value = "";
   fileInput.value = "";
   fileName.textContent = "";
 
-  const formData = new FormData(chatForm);
+  // Prepare form data
+  const formData = new FormData();
   formData.append("message", message);
-  formData.append("file", file);
+  if (file) {
+    formData.append("file", file);
+  }
 
-  // Add config
-['temperature', 'top_p', 'top_k', 'max_tokens'].forEach(id => {
-  formData.append(id, document.getElementById(id).value);
-});
+  // Add config parameters
+  ['temperature', 'top_p', 'top_k', 'max_tokens'].forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      formData.append(id, element.value);
+    }
+  });
 
   try {
     const res = await fetch("/chat", {
       method: "POST",
-      body: formData
+      body: formData,
     });
+    
     const data = await res.json();
+    
+    // Show bot response
     appendMessage("bot", data.reply, data.file_preview);
-    saveSettings();
+    
+    if (res.ok) {
+      saveSettings();
+    }
   } catch (err) {
+    console.error("Error:", err);
     appendMessage("bot", "❌ Connection error.");
   }
 });
 
-// Append message
+// Append message to chat
 function appendMessage(sender, text, file = null) {
   const div = document.createElement("div");
   div.className = `message ${sender}`;
+  
   let content = `<strong>${sender === "user" ? "You" : "Bot"}:</strong> ${formatText(text)}`;
-  if (file) content += `<br><em>📎 ${file}</em>`;
+  if (file) {
+    content += `<br><em>📎 ${file}</em>`;
+  }
+  
   div.innerHTML = content;
   chatBox.appendChild(div);
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// Format text
+// Format text with basic HTML escaping
 function formatText(text) {
+  if (!text) return "";
+  
   return text
     .replace(/&/g, '&amp;')
-    .replace(/</g, '<')
-    .replace(/>/g, '>')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
     .replace(/(?:\r\n|\r|\n)/g, '<br>')
     .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
 }
 
 // Clear chat
 clearBtn.addEventListener("click", () => {
-  fetch("/clear", { method: "POST" }).then(() => {
-    chatBox.innerHTML = "";
-  });
+  fetch("/clear", { method: "POST" })
+    .then(() => {
+      chatBox.innerHTML = "";
+    })
+    .catch(err => {
+      console.error("Error clearing chat:", err);
+    });
 });
 
-// Load on start
+// Load settings on page load
 window.addEventListener("DOMContentLoaded", () => {
   loadSettings();
+  
+  // Apply saved theme
   const isDark = localStorage.getItem("darkMode") === "true";
   if (isDark) {
+    document.getElementById("body").classList.remove("muted-light");
     document.getElementById("body").classList.add("muted-dark");
     themeToggle.textContent = "☀️";
   }
