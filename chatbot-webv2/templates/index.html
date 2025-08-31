@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🧠 Gemini Chat</title>
+  <link rel="stylesheet" href="./static/style.css"/>
+</head>
+<body class="muted-light" id="body">
+  <div class="container">
+    <header>
+      <h1>Gemini Chat</h1>
+      <div class="controls">
+        <button id="theme-toggle" title="Toggle Theme">🌙</button>
+        <button id="bg-toggle" title="Change Background">🖼️</button>
+        <button id="config-toggle" title="Model Settings">⚙️</button>
+        <button id="clear-btn" title="Clear Chat">🗑️</button>
+      </div>
+    </header>
+    <div id="config-panel" class="panel">
+      <h3>Model Settings</h3>
+      <label>Temperature (0.0–2.0)
+        <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.7"/>
+        <span id="temp-value">0.7</span>
+      </label>
+      <label>Top P (0.0–1.0)
+        <input type="range" id="top_p" min="0" max="1" step="0.1" value="0.8"/>
+        <span id="top_p-value">0.8</span>
+      </label>
+      <label>Top K (1–100)
+        <input type="range" id="top_k" min="1" max="100" step="1" value="40"/>
+        <span id="top_k-value">40</span>
+      </label>
+      <label>Max Tokens (50–2048)
+        <input type="range" id="max_tokens" min="50" max="2048" step="50" value="1024"/>
+        <span id="max_tokens-value">1024</span>
+      </label>
+    </div>
+    <div id="bg-modal" class="modal">
+      <div class="modal-content">
+        <h3>Set Background</h3>
+        <p>
+          <label><input type="radio" name="bg" value="default" checked> Default Color</label><br/>
+          <label><input type="radio" name="bg" value="upload"> Upload Image</label>
+          <input type="file" id="bg-upload" accept="image/*" style="display:none"/>
+        </p>
+        <button onclick="document.getElementById('bg-upload').click()">Upload Image</button>
+        <button onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
+    <div id="chat-box"></div>
+    <form id="chat-form" class="input-area">
+      <div class="upload-area">
+        <label title="Attach file">
+          📎 <input type="file" id="file-input" name="file" accept="image/*,.pdf,.txt,.docx">
+        </label>
+        <span id="file-name"></span>
+      </div>
+      <input type="text" id="user-input" name="message" placeholder="Ask or type..." />
+      <button type="submit">Send</button>
+    </form>
+  </div>
+
+  <script src="./static/script.js"></script>
+</body>
+</html>
