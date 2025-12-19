@@ -1,4 +1,4 @@
-import json
+﻿import json
 import os
 import google.generativeai as genai
 import toml
@@ -6,6 +6,7 @@ import toml
 # Configuration
 CONFIG_FILE = "config.toml"
 HISTORY_FILE = "chat_history.json"
+
 
 class ChatbotCLI:
     def __init__(self):
@@ -23,28 +24,28 @@ class ChatbotCLI:
                 config = toml.load(CONFIG_FILE)
                 api_key = config.get("GOOGLE_API_KEY")
                 if api_key:
-                    print(f"✅ API key loaded from {CONFIG_FILE}")
+                    print(f"[OK] API key loaded from {CONFIG_FILE}")
                     return api_key
             except Exception as e:
-                print(f"⚠️  Failed to read {CONFIG_FILE}: {e}")
+                print(f"[WARN] Failed to read {CONFIG_FILE}: {e}")
 
         # If not found, prompt user
-        print("🔐 API key not found.")
-        print(f"Please enter your Google Generative AI API key")
-        print("(It will be saved in {CONFIG_FILE} for next time)")
+        print("[WARN] API key not found.")
+        print("Please enter your Google Generative AI API key")
+        print(f"(It will be saved in {CONFIG_FILE} for next time)")
         api_key = input("\nAPI Key: ").strip()
 
         if not api_key:
-            print("❌ No API key provided. Exiting.")
-            exit(1)
+            print("[ERROR] No API key provided. Exiting.")
+            raise SystemExit(1)
 
         # Save to config.toml for future
         try:
             with open(CONFIG_FILE, "w") as f:
                 toml.dump({"GOOGLE_API_KEY": api_key}, f)
-            print(f"✅ API key saved to {CONFIG_FILE}")
+            print(f"[OK] API key saved to {CONFIG_FILE}")
         except Exception as e:
-            print(f"⚠️  Could not save API key to {CONFIG_FILE}: {e}")
+            print(f"[WARN] Could not save API key to {CONFIG_FILE}: {e}")
             print("You may need to re-enter it next time.")
 
         return api_key
@@ -53,10 +54,10 @@ class ChatbotCLI:
         """Configure Google's Generative AI"""
         try:
             genai.configure(api_key=self.api_key)
-            print("🚀 AI model is ready!\n")
+            print("[OK] AI model is ready!\n")
         except Exception as e:
-            print(f"❌ Failed to configure AI: {e}")
-            exit(1)
+            print(f"[ERROR] Failed to configure AI: {e}")
+            raise SystemExit(1)
 
     def create_model_with_config(self, temperature=0.7, top_p=0.8, top_k=40, max_output_tokens=1024):
         """Create generative model with config"""
@@ -68,7 +69,7 @@ class ChatbotCLI:
         )
         return genai.GenerativeModel(
             model_name="models/gemini-2.5-flash",
-            generation_config=generation_config
+            generation_config=generation_config,
         )
 
     def get_bot_response(self, user_input: str) -> str:
@@ -81,9 +82,9 @@ class ChatbotCLI:
 
             full_prompt = f"{context}User: {user_input}\nAssistant:"
             response = self.model.generate_content(full_prompt)
-            return response.text.strip()
+            return response.text.strip() if response.text else "No response generated."
         except Exception as e:
-            return f"❌ AI Error: {str(e)}"
+            return f"[ERROR] AI Error: {str(e)}"
 
     def load_chat_history(self, filename=HISTORY_FILE):
         """Load previous chat"""
@@ -91,24 +92,24 @@ class ChatbotCLI:
             try:
                 with open(filename, "r") as f:
                     self.chat_history = json.load(f)
-                print(f"📂 Loaded {len(self.chat_history)} messages from history.\n")
+                print(f"[OK] Loaded {len(self.chat_history)} messages from history.\n")
             except Exception as e:
-                print(f"⚠️  Could not load chat history: {e}")
+                print(f"[WARN] Could not load chat history: {e}")
 
     def save_chat_history(self, filename=HISTORY_FILE):
         """Save chat to file"""
         try:
             with open(filename, "w") as f:
                 json.dump(self.chat_history, f, indent=2)
-            print(f"\n💾 Chat saved to {filename}")
+            print(f"\n[OK] Chat saved to {filename}")
         except Exception as e:
-            print(f"❌ Save failed: {e}")
+            print(f"[ERROR] Save failed: {e}")
 
     def display_menu(self):
         """Show available commands"""
-        print("\n" + "="*50)
-        print("🤖 AI CHATBOT (CLI) - Powered by Google's Gemini")
-        print("="*50)
+        print("\n" + "=" * 50)
+        print("AI CHATBOT (CLI) - Powered by Google's Gemini")
+        print("=" * 50)
         print("Commands:")
         print("  /save   - Save chat history")
         print("  /clear  - Clear current chat")
@@ -118,17 +119,17 @@ class ChatbotCLI:
 
     def configure_model(self):
         """Let user adjust generation settings"""
-        print("\n🔧 Model Settings:")
+        print("\nModel Settings:")
         try:
-            temperature = float(input(f"Temperature (0.0–2.0) [0.7]: ") or "0.7")
-            top_p = float(input(f"Top P (0.0–1.0) [0.8]: ") or "0.8")
-            top_k = int(input(f"Top K (1–100) [40]: ") or "40")
-            max_tokens = int(input(f"Max Tokens (50–2048) [1024]: ") or "1024")
+            temperature = float(input("Temperature (0.0-2.0) [0.7]: ") or "0.7")
+            top_p = float(input("Top P (0.0-1.0) [0.8]: ") or "0.8")
+            top_k = int(input("Top K (1-100) [40]: ") or "40")
+            max_tokens = int(input("Max Tokens (50-2048) [1024]: ") or "1024")
 
             self.model = self.create_model_with_config(temperature, top_p, top_k, max_tokens)
-            print("✅ Model updated!\n")
+            print("[OK] Model updated!\n")
         except ValueError:
-            print("❌ Invalid input. Using defaults.")
+            print("[WARN] Invalid input. Using defaults.")
             self.model = self.create_model_with_config()
 
     def run(self):
@@ -136,36 +137,39 @@ class ChatbotCLI:
         self.model = self.create_model_with_config()  # default config
         self.display_menu()
 
-        print("💬 Start chatting! Type a message or a command.\n")
+        print("Start chatting! Type a message or a command.\n")
 
         while True:
-            user_input = input("🧑 YOU: ").strip()
+            user_input = input("YOU: ").strip()
 
             if not user_input:
                 continue
 
             if user_input.lower() == "/exit":
                 self.save_chat_history()
-                print("👋 Goodbye!")
+                print("Goodbye!")
                 break
 
-            elif user_input.lower() == "/save":
+            if user_input.lower() == "/save":
                 self.save_chat_history()
+                continue
 
-            elif user_input.lower() == "/clear":
+            if user_input.lower() == "/clear":
                 self.chat_history.clear()
-                print("🗑️  Chat cleared.")
+                print("[OK] Chat cleared.")
+                continue
 
-            elif user_input.lower() == "/config":
+            if user_input.lower() == "/config":
                 self.configure_model()
+                continue
 
-            else:
-                # Generate response
-                bot_response = self.get_bot_response(user_input)
-                print(f"🤖 BOT: {bot_response}")
+            # Generate response
+            bot_response = self.get_bot_response(user_input)
+            print(f"BOT: {bot_response}")
 
-                # Save to history
-                self.chat_history.append({"user": user_input, "bot": bot_response})
+            # Save to history
+            self.chat_history.append({"user": user_input, "bot": bot_response})
+
 
 if __name__ == "__main__":
     app = ChatbotCLI()
