@@ -1,5 +1,5 @@
-streamlit
 flask
 google-genai
 toml
-python-dotenv
+openai
+anthropic

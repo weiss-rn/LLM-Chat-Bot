@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gemini Chat V3 - system24</title>
+  <link rel="stylesheet" href="./static/style.css"/>
+</head>
+<body class="muted-light" id="body">
+  <div class="app-shell">
+    <aside class="sidebar" data-label="sessions">
+      <div class="sidebar-top">
+        <div class="brand">
+          <h1 class="ascii-title">Local AI Chat</h1>
+          <div class="subtitle">System24 v3</div>
+        </div>
+        <div class="sidebar-actions">
+          <button id="new-session" title="New Chat">NEW</button>
+          <button id="import-session" title="Import Chat JSON">IMPORT</button>
+          <button id="export-all" title="Export All Chats">EXPORT ALL</button>
+          <input type="file" id="import-file" accept="application/json" style="display:none"/>
+        </div>
+      </div>
+      <div id="session-list" class="session-list"></div>
+    </aside>
+
+    <main class="main-panel" data-label="terminal">
+      <header class="app-header">
+        <div class="session-title">
+          <input type="text" id="session-title" placeholder="Session title" />
+          <button id="rename-session" title="Rename Session">RENAME</button>
+        </div>
+        <div class="controls">
+          <button id="theme-toggle" title="Toggle Theme">THEME:LIGHT</button>
+          <button id="bg-toggle" title="Change Background">BG</button>
+          <button id="config-toggle" title="Model Settings">CONFIG</button>
+          <button id="export-session" title="Export Session">EXPORT</button>
+          <button id="clear-btn" title="Clear Chat">CLEAR</button>
+        </div>
+      </header>
+
+      <div id="config-panel" class="panel" data-label="settings" style="display:none;">
+        <div class="config-grid">
+          <div class="config-col">
+            <label>Provider
+              <select id="provider">
+                <option value="google">Google GenAI</option>
+                <option value="openai">OpenAI Compatible</option>
+                <option value="anthropic">Anthropic</option>
+              </select>
+            </label>
+            <label>Model
+              <input type="text" id="model" placeholder="Model name"/>
+            </label>
+            <label>OpenAI Base URL
+              <input type="text" id="openai_base_url" placeholder="https://api.openai.com/v1"/>
+            </label>
+            <label class="inline-toggle">
+              <input type="checkbox" id="show-tokens"/>
+              Show token counts
+            </label>
+          </div>
+          <div class="config-col">
+            <label>Temperature (0.0 - 2.0)
+              <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.7"/>
+              <span id="temp-value">0.7</span>
+            </label>
+            <label>Top P (0.0 - 1.0)
+              <input type="range" id="top_p" min="0" max="1" step="0.1" value="0.8"/>
+              <span id="top_p-value">0.8</span>
+            </label>
+            <label>Top K (1 - 100)
+              <input type="range" id="top_k" min="1" max="100" step="1" value="40"/>
+              <span id="top_k-value">40</span>
+            </label>
+            <label>Max Tokens (1 - 4096)
+              <input type="range" id="max_tokens" min="1" max="4096" step="50" value="1024"/>
+              <span id="max_tokens-value">1024</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div id="bg-modal" class="modal">
+        <div class="modal-content">
+          <h3>Set Background</h3>
+          <p>
+            <label><input type="radio" name="bg" value="default" checked> Default Color</label><br/>
+            <label><input type="radio" name="bg" value="upload"> Upload Image</label>
+            <input type="file" id="bg-upload" accept="image/*" style="display:none"/>
+          </p>
+          <button onclick="document.getElementById('bg-upload').click()">Upload Image</button>
+          <button onclick="closeModal()">Cancel</button>
+        </div>
+      </div>
+
+      <div id="chat-box" data-label="conversation"></div>
+
+      <form id="chat-form" class="input-area" data-label="input">
+        <div class="upload-area">
+          <label title="Attach file">
+            ATTACH <input type="file" id="file-input" name="file" accept="image/*,.pdf,.txt,.docx">
+          </label>
+          <span id="file-name"></span>
+        </div>
+        <input type="text" id="user-input" name="message" placeholder="Ask or type..." />
+        <button type="submit">SEND</button>
+      </form>
+    </main>
+  </div>
+
+  <script src="./static/script.js"></script>
+</body>
+</html>

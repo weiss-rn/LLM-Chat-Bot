@@ -1,11 +1,11 @@
-﻿import streamlit as st
+import streamlit as st
 import json
 import os
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from typing import List, Dict
 
 
-# Configure the page
 st.set_page_config(
     page_title="AI Chatbot",
     page_icon="AI",
@@ -15,92 +15,86 @@ st.set_page_config(
 
 class ChatbotApp:
     def __init__(self):
+        self.client = None
         self.setup_genai()
         self.initialize_session_state()
 
     def setup_genai(self):
-        """Configure Google's Generative AI"""
-        # You'll need to set your API key
-        # Either set it as an environment variable or directly here
+        """Configure Google's GenAI client."""
         api_key = st.secrets.get("GOOGLE_API_KEY") or os.getenv("GOOGLE_API_KEY")
 
         if not api_key:
             st.error("Please set your Google API Key in secrets.toml or as an environment variable")
             st.stop()
 
-        genai.configure(api_key=api_key)
+        self.client = genai.Client(api_key=api_key)
 
     def initialize_session_state(self):
-        """Initialize session state variables"""
+        """Initialize session state variables."""
         if "chat_history" not in st.session_state:
             st.session_state.chat_history = []
 
-        if "model" not in st.session_state:
-            st.session_state.model = None
+        if "generation_config" not in st.session_state:
+            st.session_state.generation_config = None
 
-    def create_model_with_config(self, temperature: float, top_p: float, top_k: int, max_output_tokens: int):
-        """Create a generative model with specified configuration"""
-        generation_config = genai.types.GenerationConfig(
+        if "model_name" not in st.session_state:
+            st.session_state.model_name = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+
+    def build_generation_config(self, temperature: float, top_p: float, top_k: int, max_output_tokens: int):
+        """Create a generation config with specified parameters."""
+        return types.GenerateContentConfig(
             temperature=temperature,
             top_p=top_p,
             top_k=top_k,
             max_output_tokens=max_output_tokens,
         )
 
-        model = genai.GenerativeModel(
-            model_name="models/gemini-2.5-flash",
-            generation_config=generation_config,
-        )
-
-        return model
-
-    def get_bot_response(self, user_input: str, model, chat_history: List[Dict]) -> str:
-        """Generate bot response using the model"""
+    def get_bot_response(self, user_input: str, chat_history: List[Dict]) -> str:
+        """Generate bot response using the model."""
         try:
-            # Prepare conversation context
             context = ""
-            for message in chat_history[-5:]:  # Use last 5 messages for context
+            for message in chat_history[-5:]:
                 context += f"User: {message['user']}\nAssistant: {message['bot']}\n"
 
-            # Add current user input
             full_prompt = f"{context}User: {user_input}\nAssistant:"
-
-            response = model.generate_content(full_prompt)
+            response = self.client.models.generate_content(
+                model=st.session_state.model_name,
+                contents=full_prompt,
+                config=st.session_state.generation_config,
+            )
             return response.text.strip() if response.text else "No response generated."
-
-        except Exception as e:
-            return f"Error generating response: {str(e)}"
+        except Exception as exc:
+            return f"Error generating response: {exc}"
 
     def save_chat_history(self, chat_history: List[Dict], filename: str = "chat_history.json"):
-        """Save chat history to a JSON file"""
+        """Save chat history to a JSON file."""
         try:
             with open(filename, "w") as f:
                 json.dump(chat_history, f, indent=2)
             return True
-        except Exception as e:
-            st.error(f"Error saving chat history: {str(e)}")
+        except Exception as exc:
+            st.error(f"Error saving chat history: {exc}")
             return False
 
     def load_chat_history(self, filename: str = "chat_history.json") -> List[Dict]:
-        """Load chat history from a JSON file"""
+        """Load chat history from a JSON file."""
         try:
             if os.path.exists(filename):
                 with open(filename, "r") as f:
-                    return json.load(f)
+                    data = json.load(f)
+                return data if isinstance(data, list) else []
             return []
-        except Exception as e:
-            st.error(f"Error loading chat history: {str(e)}")
+        except Exception as exc:
+            st.error(f"Error loading chat history: {exc}")
             return []
 
     def run(self):
-        """Main application logic"""
-        st.title("AI Chatbot with Google Generative AI")
+        """Main application logic."""
+        st.title("AI Chatbot with Google GenAI")
 
-        # Sidebar for configuration
         with st.sidebar:
             st.header("Model Configuration")
 
-            # Sampling parameters
             temperature = st.slider(
                 "Temperature (Creativity)",
                 min_value=0.0,
@@ -130,14 +124,13 @@ class ChatbotApp:
 
             max_tokens = st.slider(
                 "Max Output Tokens",
-                min_value=50,
+                min_value=1,
                 max_value=2048,
                 value=1024,
                 step=50,
                 help="Maximum length of the response",
             )
 
-            # Chat history management
             st.header("Chat History")
 
             col1, col2 = st.columns(2)
@@ -158,7 +151,6 @@ class ChatbotApp:
                     st.success("History loaded!")
                     st.rerun()
 
-            # Display chat statistics
             st.header("Chat Statistics")
             st.write(f"Total messages: {len(st.session_state.chat_history)}")
             if st.session_state.chat_history:
@@ -168,58 +160,53 @@ class ChatbotApp:
                 )
                 st.write(f"Avg message length: {avg_user_length:.1f} chars")
 
-        # Create or update model when parameters change
+            st.header("Model")
+            model_name = st.text_input("Model name", value=st.session_state.model_name)
+            if model_name and model_name != st.session_state.model_name:
+                st.session_state.model_name = model_name
+
         current_config = (temperature, top_p, top_k, max_tokens)
-        if st.session_state.model is None or getattr(st.session_state, "last_config", None) != current_config:
-            st.session_state.model = self.create_model_with_config(temperature, top_p, top_k, max_tokens)
+        if st.session_state.generation_config is None or getattr(st.session_state, "last_config", None) != current_config:
+            st.session_state.generation_config = self.build_generation_config(
+                temperature, top_p, top_k, max_tokens
+            )
             st.session_state.last_config = current_config
 
-        # Main chat interface
         st.header("Chat")
 
-        # Display chat history
         chat_container = st.container()
         with chat_container:
             for message in st.session_state.chat_history:
-                # User message
                 with st.chat_message("user"):
                     st.write(message["user"])
 
-                # Bot message
                 with st.chat_message("assistant"):
                     st.write(message["bot"])
 
-        # Chat input
         user_input = st.chat_input("Type your message here...")
 
         if user_input:
-            # Display user message immediately
             with st.chat_message("user"):
                 st.write(user_input)
 
-            # Generate and display bot response
             with st.chat_message("assistant"):
                 with st.spinner("Thinking..."):
                     bot_response = self.get_bot_response(
                         user_input,
-                        st.session_state.model,
                         st.session_state.chat_history,
                     )
                 st.write(bot_response)
 
-            # Add to chat history
             st.session_state.chat_history.append({
                 "user": user_input,
                 "bot": bot_response,
             })
 
-            # Rerun to update the display
             st.rerun()
 
-        # Display model info
         with st.expander("Current Model Configuration"):
             st.json({
-                "model": "models/gemini-2.5-flash",
+                "model": st.session_state.model_name,
                 "temperature": temperature,
                 "top_p": top_p,
                 "top_k": top_k,
@@ -227,7 +214,6 @@ class ChatbotApp:
             })
 
 
-# Run the app
 if __name__ == "__main__":
     app = ChatbotApp()
     app.run()

@@ -3,35 +3,38 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>🧠 Gemini Chat</title>
+  <title>Gemini Chat - system24</title>
   <link rel="stylesheet" href="./static/style.css"/>
 </head>
 <body class="muted-light" id="body">
-  <div class="container">
-    <header>
-      <h1>Gemini Chat</h1>
+  <div class="container" data-label="terminal">
+    <header class="app-header">
+      <div class="title-block">
+        <h1 class="ascii-title">Gemini Chat</h1>
+        <div class="subtitle">system24 interface</div>
+      </div>
       <div class="controls">
-        <button id="theme-toggle" title="Toggle Theme">🌙</button>
-        <button id="bg-toggle" title="Change Background">🖼️</button>
-        <button id="config-toggle" title="Model Settings">⚙️</button>
-        <button id="clear-btn" title="Clear Chat">🗑️</button>
+        <button id="theme-toggle" title="Toggle Theme">THEME:LIGHT</button>
+        <button id="bg-toggle" title="Change Background">BG</button>
+        <button id="config-toggle" title="Model Settings">CONFIG</button>
+        <button id="clear-btn" title="Clear Chat">CLEAR</button>
       </div>
     </header>
-    <div id="config-panel" class="panel" style="display:none;">
+    <div id="config-panel" class="panel" data-label="model settings" style="display:none;">
       <h3>Model Settings</h3>
-      <label>Temperature (0.0–2.0)
+      <label>Temperature (0.0 - 2.0)
         <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.7"/>
         <span id="temp-value">0.7</span>
       </label>
-      <label>Top P (0.0–1.0)
+      <label>Top P (0.0 - 1.0)
         <input type="range" id="top_p" min="0" max="1" step="0.1" value="0.8"/>
         <span id="top_p-value">0.8</span>
       </label>
-      <label>Top K (1–100)
+      <label>Top K (1 - 100)
         <input type="range" id="top_k" min="1" max="100" step="1" value="40"/>
         <span id="top_k-value">40</span>
       </label>
-      <label>Max Tokens (50–2048)
+      <label>Max Tokens (50 - 2048)
         <input type="range" id="max_tokens" min="50" max="2048" step="50" value="1024"/>
         <span id="max_tokens-value">1024</span>
       </label>
@@ -48,16 +51,16 @@
         <button onclick="closeModal()">Cancel</button>
       </div>
     </div>
-    <div id="chat-box"></div>
-    <form id="chat-form" class="input-area">
+    <div id="chat-box" data-label="conversation"></div>
+    <form id="chat-form" class="input-area" data-label="input">
       <div class="upload-area">
         <label title="Attach file">
-          📎 <input type="file" id="file-input" name="file" accept="image/*,.pdf,.txt,.docx">
+          ATTACH <input type="file" id="file-input" name="file" accept="image/*,.pdf,.txt,.docx">
         </label>
         <span id="file-name"></span>
       </div>
       <input type="text" id="user-input" name="message" placeholder="Ask or type..." />
-      <button type="submit">Send</button>
+      <button type="submit">SEND</button>
     </form>
   </div>
 

@@ -1,171 +1,104 @@
-# LLM‑Chat‑Bot
+# LLM-Chat-Bot
 
-A lightweight chatbot powered by **Google Gemini** (via `google-generativeai`) that can be used through:
+A lightweight chatbot powered by Google Gemini (via `google-genai`) that can be used through:
 
-* a **CLI** (`cli-only` folder)  
-* a **Flask web UI** (`chatbot-web/app.py`)  
-* a **Streamlit UI** (`streamlit_app_v2.py`)
-
----
-
-## Table of Contents
-- [Features](#features)  
-- [Directory Structure](#directory-structure)  
-- [Prerequisites](#prerequisites)  
-- [Installation](#installation)  
-- [Generating Secrets](#generating-secrets)  
-- [Running the Applications](#running-the-applications)  
-  - [CLI Only](#cli-only)  
-  - [Flask Web UI](#flask-web-ui)  
-  - [Streamlit UI](#streamlit-ui)  
-- [License](#license)  
-
----
+- a CLI (`cli-only` folder)
+- a Flask web UI (`chatbot-webv2` folder)
+- a Streamlit UI (`streamlit_app_v2.py`)
 
 ## Features
-- **Google Gemini integration** – uses the latest `gemini-2.5-flash` model.  
-- **Multiple front‑ends** – CLI, Flask, and Streamlit.  
-- **Configurable generation parameters** (temperature, top‑p, top‑k, max tokens).  
-- **Chat history persistence** (JSON files).  
-- **Cross‑platform scripts** for Windows (`.bat`) and Linux/macOS (`.sh`).  
-
----
+- Google Gemini integration (default model: `gemini-2.0-flash`, configurable via `GEMINI_MODEL`)
+- Multiple interfaces: CLI, Flask, and Streamlit
+- Configurable generation parameters (temperature, top_p, top_k, max tokens)
+- Chat history persistence (JSON files)
 
 ## Directory Structure
 ```
 LLM-Chat-Bot/
-│
-├─ cli-only/                                  # Pure command‑line interface
-│   ├─ app.py
-│   └─ generate_secrets.py
-│
-├─ chatbot-webv2/                             # Flask web UI - V2
-│   ├─ app.py
-│   ├─generate_secrets.py
-│   ├─ static/
-│       ├─ style.css
-│       └─ script.js
-│   └─ templates/
-│       └─ index.html
-│ 
-├─ chatbot-webv/                             # Flask web UI
-│   ├─ app.py
-│   ├─generate_secrets.py
-│   ├─ static/
-│       ├─ style.css
-│       └─ script.js
-│   └─ templates/
-│       └─ index.html
-│
-├─ streamlit_app_v2.py                        # Streamlit UI
-├─ generate_secrets.py                        # Top‑level helper for Streamlit
-│
-├─ Streamlit-run-Linux.sh                     # Bash script (Linux/macOS) → Streamlit
-├─ Streamlit-run-NT.bat                       # Batch script (Windows) → Streamlit
-├─ Windows-run-webui.bat                      # Batch script → Flask UI
-├─ linux-run-webui.sh                         # Bash script → Flask UI
-├─ linux-run-webui V2 More Advanced.sh        # Bash script → Flask UI But More Feature
-├─ Windows-run-webui.bat                      # Batch script → Flask UI But More Feature
-├─ Windows-run-cli-only.bat                   # Batch script → CLI Only
-├─ linux-run-cli-only.bat                     # Bash script → CLI Only
-│
-└─ README.md
+  cli-only/
+    app.py
+    generate_secrets.py
+  chatbot-webv2/
+    app.py
+    generate_secrets.py
+    static/
+      style.css
+      script.js
+    templates/
+      index.html
+  streamlit_app_v2.py
+  generate_secrets.py
+  requirements.txt
+  README.md
 ```
 
----
-
 ## Prerequisites
-- **Python 3.9+** (recommended: use a virtual environment)  
-- **Google Gemini API key** (obtain from Google AI Studio)  
-- Required Python packages (see `requirements.txt`)  
-
----
+- Python 3.9+ (use a virtual environment if possible)
+- Google Gemini API key (from Google AI Studio)
+- Required Python packages (see `requirements.txt`)
 
 ## Installation
 ```bash
-# Clone the repo
 git clone https://github.com/weiss-rn/LLM-Chat-Bot.git
 cd LLM-Chat-Bot
-
-# Create and activate a virtual environment
 python -m venv venv
-# Windows
-venv\Scripts\activate
-# macOS / Linux
-source venv/bin/activate
+```
 
-# Install dependencies
+Windows:
+```bat
+venv\Scripts\activate
+```
+
+macOS / Linux:
+```bash
+source venv/bin/activate
+```
+
+Install dependencies:
+```bash
 pip install -r requirements.txt
 ```
 
----
-
 ## Generating Secrets
 The project expects a `secrets.toml` (for Streamlit) or `config.toml` (for CLI/Flask) containing:
-
 ```toml
 GOOGLE_API_KEY = "YOUR_API_KEY"
 ```
 
-You can create this file automatically:
-
-### Windows
+Windows:
 ```bat
-# For Streamlit
 python generate_secrets.py
-# For CLI / Flask
-python cli-only\generate_secrets.py   # or chatbot-web\generate_secrets.py
+python cli-only\generate_secrets.py
+python chatbot-webv2\generate_secrets.py
 ```
 
-### Linux / macOS
+Linux / macOS:
 ```bash
-python3 generate_secrets.py          # Streamlit
-python3 cli-only/generate_secrets.py # CLI / Flask
+python3 generate_secrets.py
+python3 cli-only/generate_secrets.py
+python3 chatbot-webv2/generate_secrets.py
 ```
-
-The scripts will prompt for the API key and write the appropriate `secrets.toml` / `config.toml`.
-
----
 
 ## Running the Applications
 
-### CLI Only
-```bash
-# Windows
-Windows-run-cli-only.bat   # (you can add the same commands as the Linux script)
-
-# Linux / macOS
-bash linux-run-cli-only.sh
-```
-*Or run manually:*
+CLI only:
 ```bash
 cd cli-only
 python app.py
 ```
 
-### Flask Web UI
-```bat
-# Windows
-Windows-run-webui.bat
-```
+Flask web UI:
 ```bash
-# Linux / macOS
-bash linux-run-webui.sh
+cd chatbot-webv2
+python app.py
 ```
 The Flask server starts at `http://0.0.0.0:5000`.
 
-### Streamlit UI
-```bat
-# Windows
-Streamlit-run-NT.bat
-```
+Streamlit UI:
 ```bash
-# Linux / macOS
-bash Streamlit-run-Linux.sh
+streamlit run streamlit_app_v2.py
 ```
 The Streamlit app will be available at `http://localhost:8501`.
 
----
-
 ## License
-This project is licensed under the **Apache 2.0 License** – see the [LICENSE](LICENSE) file for details.
+Apache 2.0. See `LICENSE`.
